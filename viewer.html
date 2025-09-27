@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualisateur 3D Philae</title>
-    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script> <!-- Plotly.js CDN -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <style>
         body { margin: 0; font-family: Arial, sans-serif; }
         #graph { width: 100vw; height: 90vh; }
@@ -13,7 +13,7 @@
 <body>
     <div id="graph"></div>
     <script>
-        // Paramètres paramétriques (modifie ici pour changer les dimensions)
+        // Paramètres paramétriques (modifie ici pour changer)
         const l = 40;
         const h = 40;
         const epaisseur = 19;
@@ -24,6 +24,7 @@
         const sqrt2 = Math.sqrt(2);
         const sqrt3 = Math.sqrt(3);
         const alpha = Math.acos(sqrt2 / sqrt3);
+
         const delta_x = Math.tan(alpha) * l / 2;
         const delta_hx = h * Math.tan(alpha);
         const R3 = Math.sqrt(h**2 + (l/2)**2);
@@ -32,7 +33,7 @@
         const Rot3_y = R3 * Math.cos(Rot3 - Math.PI/4);
         const Rot3_z = R3 * Math.sin(Rot3 - Math.PI/4);
 
-        // Arête 1 (équivalent DataFrame)
+        // Arête 1
         const arete1 = {
             X: [0, delta_hx, delta_x, Rot3_y, delta_x, Rot3_y, Longueur, Longueur - delta_hx, Longueur - delta_x, Longueur - Rot3_y, Longueur - delta_x, Longueur - Rot3_y],
             Y: [0, delta_hx, delta_x, Rot3_y, -delta_x, Rot3_z, 0, delta_hx, delta_x, Rot3_y, -delta_x, Rot3_z],
@@ -53,28 +54,87 @@
             Z: [0, delta_hx, delta_x, Rot3_y, delta_x, Rot3_y, Hauteur, Hauteur - delta_hx, Hauteur - delta_x, Hauteur - Rot3_y, Hauteur - delta_x, Hauteur - Rot3_y]
         };
 
-        // Dérivées (copies avec modifications)
-        const arete1_2 = {...arete1, Y: arete1.Y.map(y => Largeur - y)};
-        const arete1_3 = {...arete1, Z: arete1.Z.map(z => Hauteur - z)};
-        const arete1_4 = {...arete1_2, Z: arete1_2.Z.map(z => Hauteur - z)};
-        const arete2_1 = {...arete2, X: arete2.X.map((v, i) => arete1.X[i])}; // Approximation basée sur script, ajuste si besoin
-        // Ajoute les autres dérivées de la même façon si nécessaires (arete2_2, etc.)
+        // Dérivées (copies avec modifications, basées sur ton script Python)
+        const arete1_2 = {...arete1};
+        arete1_2.Y = arete1.Y.map(y => Largeur - y);
+        const arete1_3 = {...arete1};
+        arete1_3.Z = arete1.Z.map(z => Hauteur - z);
+        const arete1_4 = {...arete1_2};
+        arete1_4.Z = arete1_2.Z.map(z => Hauteur - z);
+
+        const arete2_1 = {...arete2};
+        arete2_1.X = arete2.X.map((v, i) => Longueur - v);
+        const arete2_2 = {...arete2_1};
+        arete2_2.Z = arete2_1.Z.map(z => Hauteur - z);
+        const arete2_3 = {...arete2};
+        arete2_3.Z = arete2.Z.map(z => Hauteur - z);
+
+        const arete3_1 = {...arete3};
+        arete3_1.Y = arete3.Y.map((v, i) => Largeur - v);
+        const arete3_2 = {...arete3_1};
+        arete3_2.X = arete3_1.X.map(x => Longueur - x);
+        const arete3_3 = {...arete3};
+        arete3_3.X = arete3.X.map(x => Longueur - x);
 
         // Traces pour arêtes (lignes 3D)
-        const areteTraces = []; // Ajoute tes traces ligne ici, ex. :
-        // Exemple pour arete1 : Plotly.addTrace({type: 'scatter3d', mode: 'lines', x: arete1.X, y: arete1.Y, z: arete1.Z, name: 'Arête 1'});
+        const areteTraces = [
+            {type: 'scatter3d', mode: 'lines', x: arete1.X, y: arete1.Y, z: arete1.Z, line: {color: 'black', width: 5}, name: 'Arête 1', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete1_2.X, y: arete1_2.Y, z: arete1_2.Z, line: {color: 'black', width: 5}, name: 'Arête 1_2', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete1_3.X, y: arete1_3.Y, z: arete1_3.Z, line: {color: 'black', width: 5}, name: 'Arête 1_3', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete1_4.X, y: arete1_4.Y, z: arete1_4.Z, line: {color: 'black', width: 5}, name: 'Arête 1_4', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete2.X, y: arete2.Y, z: arete2.Z, line: {color: 'black', width: 5}, name: 'Arête 2', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete2_1.X, y: arete2_1.Y, z: arete2_1.Z, line: {color: 'black', width: 5}, name: 'Arête 2_1', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete2_2.X, y: arete2_2.Y, z: arete2_2.Z, line: {color: 'black', width: 5}, name: 'Arête 2_2', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete2_3.X, y: arete2_3.Y, z: arete2_3.Z, line: {color: 'black', width: 5}, name: 'Arête 2_3', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete3.X, y: arete3.Y, z: arete3.Z, line: {color: 'black', width: 5}, name: 'Arête 3', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete3_1.X, y: arete3_1.Y, z: arete3_1.Z, line: {color: 'black', width: 5}, name: 'Arête 3_1', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete3_2.X, y: arete3_2.Y, z: arete3_2.Z, line: {color: 'black', width: 5}, name: 'Arête 3_2', visible: true},
+            {type: 'scatter3d', mode: 'lines', x: arete3_3.X, y: arete3_3.Y, z: arete3_3.Z, line: {color: 'black', width: 5}, name: 'Arête 3_3', visible: true}
+        ];
 
-        // Traces pour faces (meshes)
-        const faceTraces = []; // Ajoute tes meshes comme dans le script Python, ex. :
-        // {type: 'mesh3d', x: [...], y: [...], z: [...], i: [...], j: [...], k: [...], name: 'face_Fond', color: 'blue', opacity: 0.5}
-
-        // Création du graphique
-        const data = [...areteTraces, ...faceTraces];
-        const layout = {
-            scene: {aspectmode: 'cube', xaxis: {range: [-30, Math.max(Longueur, Largeur, Hauteur) * 1.1] /* etc. */}},
-            updatemenus: [
-                {buttons: [{method: 'update', args: [{visible: [true/false for each trace]}], label: 'Toggle Arêtes'} /* Ajoute un bouton par groupe */}]
+        // Traces pour faces (meshes3d, basées sur tes points – ajuste les indices i/j/k si besoin pour les triangles)
+        const faceFond = {
+            type: 'mesh3d',
+            x: [arete1.X[0], arete2.X[0], arete1_2.X[0], arete2_1.X[0]], // Exemple points pour fond, complète avec tes coords
+            y: [arete1.Y[0], arete2.Y[0], arete1_2.Y[0], arete2_1.Y[0]],
+            z: [arete1.Z[0], arete2.Z[0], arete1_2.Z[0], arete2_1.Z[0]],
+            i: [0, 0], j: [1, 2], k: [2, 3], // Indices pour triangles
+            color: 'blue', opacity: 0.5, name: 'face_Fond', visible: true
         };
+        // Ajoute de même pour face_Joue1, face_Joue2, face_Socle, face_Dessus (utilise les points appropriés de ton script)
+
+        const faceTraces = [faceFond /* , faceJoue1, etc. */];
+
+        // Données complètes
+        const data = [...areteTraces, ...faceTraces];
+
+        // Layout avec boutons toggle (updatemenus)
+        const max_dim = Math.max(Longueur, Largeur, Hauteur) * 1.1;
+        const layout = {
+            scene: {
+                aspectmode: 'cube',
+                xaxis: {range: [-30, max_dim]},
+                yaxis: {range: [-30, max_dim]},
+                zaxis: {range: [-30, max_dim]},
+                camera: {up: {x: 0, y: 0, z: 1}, eye: {x: 1.25, y: 1.25, z: 1.25}}
+            },
+            showlegend: true,
+            updatemenus: [{
+                buttons: [
+                    {method: 'update', args: [{visible: Array(areteTraces.length).fill(true).concat(Array(faceTraces.length).fill(true))}, []], label: 'Show Arêtes'},
+                    {method: 'update', args: [{visible: Array(areteTraces.length).fill(false).concat(Array(faceTraces.length).fill(true))}, []], label: 'Hide Arêtes'}
+                ],
+                direction: 'left', pad: {r: 10, t: 10}, showactive: true, type: 'buttons', x: 0.1, xanchor: 'left', y: 1.1, yanchor: 'top'
+            }, {
+                buttons: [
+                    {method: 'update', args: [{visible: data.map((t, i) => i < areteTraces.length || t.name !== 'face_Fond' ? t.visible : true)}, []], label: 'Show Fond'},
+                    {method: 'update', args: [{visible: data.map((t, i) => i < areteTraces.length || t.name !== 'face_Fond' ? t.visible : false)}, []], label: 'Hide Fond'}
+                ],
+                direction: 'left', pad: {r: 10, t: 10}, showactive: true, type: 'buttons', x: 0.3, xanchor: 'left', y: 1.1, yanchor: 'top'
+            } // Ajoute similaires pour Joue1, Joue2, Socle, Dessus
+            ]
+        };
+
         Plotly.newPlot('graph', data, layout);
     </script>
 </body>
